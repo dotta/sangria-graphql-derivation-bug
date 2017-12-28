@@ -2,9 +2,9 @@
 
 This repository serves the purpose of investigating sangria-graphql bug https://github.com/sangria-graphql/sangria/issues/172 ("Field list is empty").
 
-Currently, compiling this project yields the above mentioned error "Field list is empty". It's unclear to me at the moment if the reason for the error is a library misuse from my side or it's indeed a reproducible for https://github.com/sangria-graphql/sangria/issues/172.
+Compiling this project yields the above mentioned error "Field list is empty".
 
-# Steps to reproduce the error
+## sbt
 
 ```sbt
 $ sbt
@@ -23,3 +23,9 @@ sbt:sangria-bug> compile
 [error] (compile:compileIncremental) Compilation failed
 [error] Total time: 1 s, completed Dec 24, 2017 11:30:08 AM
 ```
+
+## Vanilla Scala 2.12.4
+
+Using the `@args` file in this repository.
+
+Interestingly, if `bug/Derivation.scala` and `bug/Mutation.scala` are compiled in reversed order, then compilation succeeds! Of course the same result can be easily achieved in sbt by renaming `Derivation.scala` into `XDerivation.scala`. The reason is simple, by doing so the `XDerivation.scala` source is compiled *after* `Mutation.scala` causing compilation to fail. This hints at the fact that the sangria `deriveContextObjectType` macro implementation is likely forgetting to trigger some side effects (i.e., it's not fully initializing some symbol) when the macro executes and hence the order in which the compiler loads and compiles files becomes relevant.
